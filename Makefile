@@ -17,16 +17,16 @@
 EXE = app
 IMGUI_DIR = ./UI/imgui
 FILE_BROWSER_DIR = ./UI/FileBrowser
-EMU_UI_DIR = ./UI/emu-ui
+SR_DIR = ./src
 SOURCES = main.cpp
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
-SOURCES += $(FILE_BROWSER_DIR)/ImGuiFileBrowser.cpp $(EMU_UI_DIR)/graphics.cpp  $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+SOURCES += $(FILE_BROWSER_DIR)/ImGuiFileBrowser.cpp $(SR_DIR)/emulator.cpp $(SR_DIR)/renderer.cpp  $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 LINUX_GL_LIBS = -lGL
 
-CXXFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(FILE_BROWSER_DIR) -I$(EMU_UI_DIR)
+CXXFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(FILE_BROWSER_DIR) -I$(SR_DIR)
 CXXFLAGS += -g -Wall -Wformat
 LIBS =
 
@@ -48,7 +48,7 @@ endif
 %.o:%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(EMU_UI_DIR)/%.cpp
+%.o:$(SR_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(FILE_BROWSER_DIR)/%.cpp
