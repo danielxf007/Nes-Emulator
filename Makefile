@@ -20,7 +20,7 @@ FILE_BROWSER_DIR = ./UI/FileBrowser
 SR_DIR = ./src
 SOURCES = main.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
-SOURCES += $(FILE_BROWSER_DIR)/ImGuiFileBrowser.cpp $(SR_DIR)/emulator.cpp $(SR_DIR)/renderer.cpp  $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+SOURCES += $(FILE_BROWSER_DIR)/ImGuiFileBrowser.cpp $(SR_DIR)/emulator.cpp $(SR_DIR)/gui.cpp $(SR_DIR)/renderer.cpp  $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
