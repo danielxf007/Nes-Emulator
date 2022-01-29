@@ -1,18 +1,19 @@
 #include "emulator.h"
 
 Emulator::Emulator(){
-    renderer = new Renderer();
-    curr_state = EmulatorStates::PAUSED;
+    curr_state = EmulatorStates::INITIALIZATION;
+    emu_gui = new EmuGui(&curr_state);
+    renderer = new Renderer(emu_gui);
 }
 
 Emulator::~Emulator(){
-    delete renderer;
+    clearPointer(emu_gui);
+    clearPointer(renderer);
 }
 
 void Emulator::emulate(){
-    bool done = false;
     SDL_Event event;
-    while (!done){
+    while(curr_state != EmulatorStates::FINISHED){
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -21,8 +22,23 @@ void Emulator::emulate(){
         while (SDL_PollEvent(&event)){
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
-                done = true;
+                curr_state = EmulatorStates::FINISHED;
         }
-        renderer->render();
+        switch(curr_state){
+        case EmulatorStates::INITIALIZATION:
+            renderer->init();
+            curr_state = EmulatorStates::RUNNING;
+            break;
+        case EmulatorStates::RUNNING:
+            renderer->render();
+            break;
+        case EmulatorStates::LOADING_ROM:
+            std::cout << (emu_gui->getRomPath()).c_str() << std::endl;
+            renderer->render();
+            curr_state = EmulatorStates::RUNNING;
+            break;
+        default:
+            break;
+        }
     }
 }
