@@ -3,15 +3,18 @@
 EmuGui::EmuGui(int *emu_state){
     this->emu_state = emu_state;
     file_dialog = nullptr;
+    mem_edit = nullptr;
     file_dialog_flags = 0;
 }
 
 EmuGui::~EmuGui(){
     clearPointer(file_dialog);
+    clearPointer(mem_edit);
 }
 
 void EmuGui::init(){
     file_dialog = new imgui_addons::ImGuiFileBrowser();
+    mem_edit = new MemoryEditor();
 }
 
 void EmuGui::renderFileDialog(){
@@ -52,8 +55,13 @@ void EmuGui::renderFileDialog(){
     }    
 }
 
+void EmuGui::renderMemEditor(){
+    mem_edit->DrawWindow("Memory Editor", data, 64);
+}
+
 void EmuGui::render(){
     renderFileDialog();
+    renderMemEditor();
     /*
     ImGui::Begin("Controls");
         ImGui::Button("one", ImVec2(50, 50));
