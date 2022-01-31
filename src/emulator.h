@@ -1,12 +1,16 @@
 #include "states_flags.h"
 #include "renderer.h"
 #include "gui.h"
+#include "cartridge.h"
+#include "memory_map.h"
 #include <iostream>
 
 class Emulator{
     private:
         EmuGui *emu_gui;
         Renderer *renderer;
+        MemoryMapper *memory_mapper;
+        Cartridge *cartridge;
         int curr_state;
     public:
         Emulator();
