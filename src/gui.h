@@ -8,6 +8,8 @@
 #include "imgui_internal.h"
 #include "../UI/MemoryEditor/imgui_memory_editor.h"
 #include "util.h"
+#include "cartridge.h"
+#include "memory_map.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
@@ -17,10 +19,10 @@ class EmuGui{
         int *emu_state;
         imgui_addons::ImGuiFileBrowser *file_dialog;
         MemoryEditor *mem_edit;
-        int file_dialog_flags;
-        int data[64];
+        Peripherals *peripherals;
+        int file_dialog_flags, memory_dump_state;
     public:
-        EmuGui(int *emu_state);
+        EmuGui(int *emu_state, Peripherals *peripherals);
         ~EmuGui();
         void init();
         void renderFileDialog();
