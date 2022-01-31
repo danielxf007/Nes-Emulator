@@ -12,4 +12,10 @@ namespace FileDialogFlags{
         OPEN = 0x1, SAVE = 0x20
     };
 }
+
+namespace MemoryMappers{
+    enum{
+        NROM256
+    };
+}
 #endif
