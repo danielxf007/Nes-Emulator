@@ -2,13 +2,17 @@
 
 Emulator::Emulator(){
     curr_state = EmulatorStates::INITIALIZATION;
-    emu_gui = new EmuGui(&curr_state);
+    memory_mapper = new MemoryMapper();
+    cartridge = memory_mapper->peripherals->cartridge;
+    emu_gui = new EmuGui(&curr_state, memory_mapper->peripherals);
     renderer = new Renderer(emu_gui);
 }
 
 Emulator::~Emulator(){
     clearPointer(emu_gui);
     clearPointer(renderer);
+    clearPointer(memory_mapper);
+    cartridge = nullptr;
 }
 
 void Emulator::emulate(){
@@ -33,9 +37,13 @@ void Emulator::emulate(){
             renderer->render();
             break;
         case EmulatorStates::LOADING_ROM:
-            std::cout << (emu_gui->getRomPath()).c_str() << std::endl;
+            if(!cartridge->init(emu_gui->getRomPath())){
+                std::cout << "Invalid File" << std::endl;
+                curr_state = EmulatorStates::RUNNING;
+            }else{
+                curr_state = EmulatorStates::RUNNING;
+            }
             renderer->render();
-            curr_state = EmulatorStates::RUNNING;
             break;
         default:
             break;
