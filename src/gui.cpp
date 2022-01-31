@@ -1,7 +1,8 @@
 #include "gui.h"
 
-EmuGui::EmuGui(int *emu_state){
+EmuGui::EmuGui(int *emu_state, Peripherals *peripherals){
     this->emu_state = emu_state;
+    this->peripherals = peripherals;
     file_dialog = nullptr;
     mem_edit = nullptr;
     file_dialog_flags = 0;
@@ -10,6 +11,8 @@ EmuGui::EmuGui(int *emu_state){
 EmuGui::~EmuGui(){
     clearPointer(file_dialog);
     clearPointer(mem_edit);
+    emu_state = nullptr;
+    peripherals = nullptr;
 }
 
 void EmuGui::init(){
@@ -18,22 +21,16 @@ void EmuGui::init(){
 }
 
 void EmuGui::renderFileDialog(){
-
+    file_dialog_flags = 0;
     if(ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Menu"))
         {
-            if (ImGui::MenuItem("Open", NULL)){
+            if (ImGui::MenuItem("Open", NULL))
                 file_dialog_flags |= FileDialogFlags::OPEN;
-            }else{
-                file_dialog_flags &= (~FileDialogFlags::OPEN);
-            }
-            if (ImGui::MenuItem("Save", NULL)){
+            if (ImGui::MenuItem("Save", NULL))
                 file_dialog_flags |= FileDialogFlags::SAVE;
-            }else{
-                file_dialog_flags &= (~FileDialogFlags::SAVE);
-            }
-            
+                
         ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -49,14 +46,46 @@ void EmuGui::renderFileDialog(){
     */
     if(file_dialog->showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".nes")){
        *emu_state = EmulatorStates::LOADING_ROM;
-       file_dialog_flags &= (~FileDialogFlags::OPEN);
     }
     if(file_dialog->showFileDialog("Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".png,.jpg,.bmp")){
     }    
 }
 
 void EmuGui::renderMemEditor(){
-    mem_edit->DrawWindow("Memory Editor", data, 64);
+    if(ImGui::Begin("Memory Dumps")){
+        if(ImGui::BeginTabBar("##memory_dumps", ImGuiTabBarFlags_None)){
+            if(ImGui::BeginTabItem("Zero Page")){
+                mem_edit->DrawContents(peripherals->zero_page, sizeof(peripherals->zero_page), 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("Stack")){
+                mem_edit->DrawContents(peripherals->stack, sizeof(peripherals->stack), 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("RAM")){
+                mem_edit->DrawContents(peripherals->ram, sizeof(peripherals->ram), 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("Expansion Rom")){
+                mem_edit->DrawContents(peripherals->expansion_rom, sizeof(peripherals->expansion_rom), 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("SRAM")){
+                mem_edit->DrawContents(peripherals->sram, sizeof(peripherals->sram), 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("Lower ROM")){
+                mem_edit->DrawContents(peripherals->cartridge->rom_l_bank, peripherals->cartridge->ROM_SZ, 0);
+                ImGui::EndTabItem();
+            }
+            if(ImGui::BeginTabItem("Upper ROM")){
+                mem_edit->DrawContents(peripherals->cartridge->rom_u_bank, peripherals->cartridge->ROM_SZ, 0);
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        ImGui::End();
+        }
+    }
 }
 
 void EmuGui::render(){
