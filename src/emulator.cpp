@@ -4,7 +4,8 @@ Emulator::Emulator(){
     curr_state = EmulatorStates::INITIALIZATION;
     memory_mapper = new MemoryMapper();
     cartridge = memory_mapper->peripherals->cartridge;
-    emu_gui = new EmuGui(&curr_state, memory_mapper->peripherals);
+    cpu = new CPU6502(memory_mapper);
+    emu_gui = new EmuGui(&curr_state, memory_mapper->peripherals, &cpu->cpu_context);
     renderer = new Renderer(emu_gui);
 }
 
@@ -12,11 +13,15 @@ Emulator::~Emulator(){
     clearPointer(emu_gui);
     clearPointer(renderer);
     clearPointer(memory_mapper);
+    clearPointer(cpu);
     cartridge = nullptr;
 }
 
 void Emulator::emulate(){
     SDL_Event event;
+    cpu->init();
+    renderer->init();
+    curr_state = EmulatorStates::PAUSED;
     while(curr_state != EmulatorStates::FINISHED){
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -29,24 +34,26 @@ void Emulator::emulate(){
                 curr_state = EmulatorStates::FINISHED;
         }
         switch(curr_state){
-        case EmulatorStates::INITIALIZATION:
-            renderer->init();
-            curr_state = EmulatorStates::RUNNING;
-            break;
         case EmulatorStates::RUNNING:
-            renderer->render();
+            break;
+        case EmulatorStates::RUNNING_STEP:
+            cpu->run();
+            curr_state = EmulatorStates::PAUSED;
             break;
         case EmulatorStates::LOADING_ROM:
+            cpu->reset();
             if(!cartridge->init(emu_gui->getRomPath())){
                 std::cout << "Invalid File" << std::endl;
-                curr_state = EmulatorStates::RUNNING;
+                curr_state = EmulatorStates::ERROR;
             }else{
-                curr_state = EmulatorStates::RUNNING;
+                curr_state = EmulatorStates::PAUSED;
             }
-            renderer->render();
+            break;
+        case EmulatorStates::ERROR:
             break;
         default:
             break;
         }
+        renderer->render();
     }
 }
