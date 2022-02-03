@@ -21,11 +21,11 @@ SR_DIR = ./src
 SOURCES = main.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(FILE_BROWSER_DIR)/ImGuiFileBrowser.cpp $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
-SOURCES += $(SR_DIR)/emulator.cpp $(SR_DIR)/gui.cpp $(SR_DIR)/renderer.cpp $(SR_DIR)/memory_map.cpp $(SR_DIR)/cartridge.cpp
+SOURCES += $(SR_DIR)/emulator.cpp $(SR_DIR)/gui.cpp $(SR_DIR)/renderer.cpp $(SR_DIR)/shader.cpp $(SR_DIR)/memory_map.cpp $(SR_DIR)/cartridge.cpp $(SR_DIR)/cpu.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
-LINUX_GL_LIBS = -lGL
+LINUX_GL_LIBS = -lGL -lGLEW
 
 CXXFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(FILE_BROWSER_DIR) -I$(SR_DIR)
 CXXFLAGS += -g -Wall -Wformat
