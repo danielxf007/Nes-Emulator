@@ -1,23 +1,29 @@
 #include "gui.h"
 
-EmuGui::EmuGui(int *emu_state, Peripherals *peripherals){
+EmuGui::EmuGui(int *emu_state, Peripherals *peripherals, CPUContext *cpu_context){
     this->emu_state = emu_state;
     this->peripherals = peripherals;
+    this->cpu_context = cpu_context;
     file_dialog = nullptr;
     mem_edit = nullptr;
+    stack_dump = nullptr;
     file_dialog_flags = 0;
 }
 
 EmuGui::~EmuGui(){
     clearPointer(file_dialog);
     clearPointer(mem_edit);
+    clearPointer(stack_dump);
     emu_state = nullptr;
     peripherals = nullptr;
+    cpu_context = nullptr;
 }
 
 void EmuGui::init(){
     file_dialog = new imgui_addons::ImGuiFileBrowser();
     mem_edit = new MemoryEditor();
+    stack_dump = new MemoryEditor();
+    stack_dump->Cols = 1;
 }
 
 void EmuGui::renderFileDialog(){
@@ -44,7 +50,7 @@ void EmuGui::renderFileDialog(){
     /* Optional third parameter. Support opening only compressed rar/zip files. 
     * Opening any other file will show error, return false and won't close the dialog.
     */
-    if(file_dialog->showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".nes")){
+    if(file_dialog->showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".nes, .bin")){
        *emu_state = EmulatorStates::LOADING_ROM;
     }
     if(file_dialog->showFileDialog("Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".png,.jpg,.bmp")){
@@ -56,10 +62,6 @@ void EmuGui::renderMemEditor(){
         if(ImGui::BeginTabBar("##memory_dumps", ImGuiTabBarFlags_None)){
             if(ImGui::BeginTabItem("Zero Page")){
                 mem_edit->DrawContents(peripherals->zero_page, sizeof(peripherals->zero_page), 0);
-                ImGui::EndTabItem();
-            }
-            if(ImGui::BeginTabItem("Stack")){
-                mem_edit->DrawContents(peripherals->stack, sizeof(peripherals->stack), 0);
                 ImGui::EndTabItem();
             }
             if(ImGui::BeginTabItem("RAM")){
@@ -88,9 +90,60 @@ void EmuGui::renderMemEditor(){
     }
 }
 
+void EmuGui::renderStackDump(){
+    stack_dump->DrawWindow("Stack Dump", peripherals->stack, sizeof(peripherals->stack));
+}
+
+void EmuGui::renderCPURegisters(){
+     ImGui::SetNextWindowSize(ImVec2(200, 260));
+    if(ImGui::Begin("CPU Registers")){
+        if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)){
+            ImGui::TableSetupColumn("Register");
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableHeadersRow();
+            renderRegister8("A", (cpu_context->A).value);
+            renderRegister8("X", (cpu_context->X).value);
+            renderRegister8("Y", (cpu_context->Y).value);
+            renderRegister8("SP", (cpu_context->SP).value);
+            renderRegister16("PC", cpu_context->PC);
+            renderFlag("N", (cpu_context->P).N);
+            renderFlag("V", (cpu_context->P).V);
+            renderFlag("B", (cpu_context->P).B);
+            renderFlag("D", (cpu_context->P).D);
+            renderFlag("I", (cpu_context->P).I);
+            renderFlag("Z", (cpu_context->P).Z);
+            renderFlag("C", (cpu_context->P).C);
+            ImGui::EndTable();
+        }        
+        ImGui::End();
+    }else
+        ImGui::End();
+}
+
+void EmuGui::renderControls(){
+    if(ImGui::Begin("Controls")){
+        if(ImGui::Button("Play", ImVec2(50, 25))){
+            *emu_state = EmulatorStates::RUNNING;
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Pause", ImVec2(50, 25))){
+            *emu_state = EmulatorStates::PAUSED;
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Step", ImVec2(50, 25))){
+            *emu_state = EmulatorStates::RUNNING_STEP;
+        }
+        ImGui::End();
+    }else
+        ImGui::End();
+}
+
 void EmuGui::render(){
     renderFileDialog();
     renderMemEditor();
+    renderStackDump();
+    renderCPURegisters();
+    renderControls();
     /*
     ImGui::Begin("Controls");
         ImGui::Button("one", ImVec2(50, 50));
