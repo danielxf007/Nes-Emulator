@@ -10,74 +10,63 @@ NRom256::~NRom256(){
 }
 
 byte NRom256::read(word addr){
-    word aux_addr = addr % 0x800;
-    if(aux_addr < 0x100){
-        return peripherals->zero_page[aux_addr]; 
-    }else if(aux_addr < 0x200){
-        return peripherals->stack[aux_addr];
-    }else if(aux_addr < 0x800){
-        return peripherals->ram[aux_addr];
+    byte aux;
+    addr_space.value = addr;
+    if(addr_space.block < 32){
+        aux = addr_space.block % 8;
+        if(aux == 0x00)
+            return peripherals->zero_page[addr_space.n_element];
+        if(aux == 0x01)
+            return peripherals->stack[addr_space.n_element];
+        return peripherals->ram[addr_space.n_element + addr_space.block_sz*(aux-2)];
     }
-    if(addr < 0x4000){
-        aux_addr = (addr - 0x2000)%8;
-        return peripherals->io_regs0[aux_addr];
-    }else if(addr < 0x4020){
-        aux_addr = (addr - 0x4000);
-        return peripherals->io_regs1[aux_addr];
+    if(addr_space.block < 64)
+        return peripherals->io_regs0[addr_space.n_element % 8];
+    if(addr_space.block < 96){
+        aux = addr_space.block % 32;
+        if(aux == 0x00 && addr_space.n_element < 0x20)
+            return peripherals->io_regs1[addr_space.n_element];
+        return peripherals->expansion_rom[addr_space.n_element + addr_space.block_sz*aux];
     }
-    if(addr < 0x6000){
-        aux_addr = addr - 0x4020;
-        return peripherals->expansion_rom[aux_addr];
+    if(addr_space.block < 128){
+        aux = addr_space.block % 32;
+        return peripherals->sram[addr_space.n_element + addr_space.block_sz*aux];
     }
-    if(addr < 0x8000){
-        aux_addr = addr - 0x6000;
-        return peripherals->sram[aux_addr];
-    }
-    if(addr < 0xC000){
-        aux_addr = addr - 0x8000;
-        return peripherals->cartridge->rom_l_bank[aux_addr];
-    }
-    aux_addr = addr - 0xC000;
-    return peripherals->cartridge->rom_u_bank[aux_addr];
+    aux = addr_space.block % 64;
+    if(addr_space.block < 192)
+        return peripherals->cartridge->rom_l_bank[addr_space.n_element + addr_space.block_sz*aux];
+    return peripherals->cartridge->rom_u_bank[addr_space.n_element + addr_space.block_sz*aux];
 }
 
 void NRom256::write(word addr, byte value){
-    word aux_addr = addr % 0x800;
-    if(aux_addr < 0x100){
-        peripherals->zero_page[aux_addr] = value;
-        return; 
-    }else if(aux_addr < 0x200){
-        peripherals->stack[aux_addr] = value;
-        return;
-    }else if(aux_addr < 0x800){
-        peripherals->ram[aux_addr] = value;
-        return;
+    byte aux;
+    addr_space.value = addr;
+    if(addr_space.block < 32){
+        aux = addr_space.block % 8;
+        if(aux == 0x00)
+            peripherals->zero_page[addr_space.n_element] = value;
+        else if(aux == 0x01)
+            peripherals->stack[addr_space.n_element] = value;
+        else 
+            peripherals->ram[addr_space.n_element + addr_space.block_sz*(aux-2)] = value;
+    }else if(addr_space.block < 64)
+        peripherals->io_regs0[addr_space.n_element % 8] = value;
+    else if(addr_space.block < 96){
+        aux = addr_space.block % 32;
+        if(aux == 0x00 && addr_space.n_element < 0x20)
+            peripherals->io_regs1[addr_space.n_element] = value;
+        else
+            peripherals->expansion_rom[addr_space.n_element + addr_space.block_sz*aux] = value;
+    }else if(addr_space.block < 128){
+        aux = addr_space.block % 32;
+        peripherals->sram[addr_space.n_element + addr_space.block_sz*aux] = value;
+    }else{
+        aux = addr_space.block % 64;
+        if(addr_space.block < 192)
+            peripherals->cartridge->rom_l_bank[addr_space.n_element + addr_space.block_sz*aux] = value;
+        else
+            peripherals->cartridge->rom_u_bank[addr_space.n_element + addr_space.block_sz*aux] = value;
     }
-    if(addr < 0x4000){
-        aux_addr = (addr - 0x2000)%8;
-        peripherals->io_regs0[aux_addr] = value;
-        return;
-    }else if(addr < 0x4020){
-        aux_addr = (addr - 0x4000);
-        peripherals->io_regs1[aux_addr] = value;
-        return;
-    }
-    if(addr < 0x6000){
-        aux_addr = addr - 0x4020;
-        peripherals->expansion_rom[aux_addr] = value;
-        return;
-    }
-    if(addr < 0x8000){
-        aux_addr = addr - 0x6000;
-        peripherals->sram[aux_addr] = value;
-        return;
-    }
-    if(addr < 0xC000){
-        aux_addr = addr - 0x8000;
-        peripherals->cartridge->rom_l_bank[aux_addr] = value;
-    }
-    aux_addr = addr - 0xC000;
-    peripherals->cartridge->rom_u_bank[aux_addr] = value;
 }
 
 //
