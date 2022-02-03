@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "cartridge.h"
 #include "memory_map.h"
+#include "cpu.h"
 #include <iostream>
 
 class Emulator{
@@ -11,6 +12,7 @@ class Emulator{
         Renderer *renderer;
         MemoryMapper *memory_mapper;
         Cartridge *cartridge;
+        CPU6502 *cpu;
         int curr_state;
     public:
         Emulator();
