@@ -2,8 +2,12 @@
 #define STATES_H
 
 namespace EmulatorStates{
-    enum {
-        INITIALIZATION, RUNNING, PAUSED, LOADING_ROM, SETING_UP_SYSTEM, FINISHED 
+    enum{
+        INITIALIZATION, PAUSED, RUNNING, RUNNING_STEP, LOADING_ROM, FINISHED, ERROR
+    };
+
+    enum{
+
     };
 }
 
