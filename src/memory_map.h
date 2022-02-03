@@ -10,9 +10,20 @@ struct Peripherals{
     Cartridge *cartridge;
 };
 
+typedef struct{
+    const word block_sz = 256;
+    union{
+        word value;
+        struct {
+            byte n_element, block;
+        };
+    };
+}AddrSpace;
+
 class NRom256{
 
     private:
+        AddrSpace addr_space;
         Peripherals *peripherals;
     
     public:
